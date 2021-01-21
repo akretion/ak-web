@@ -12,7 +12,6 @@ exclude: |
   ^shopinvader_custom_attribute/|
   ^shopinvader_customer_multi_user/|
   ^shopinvader_customer_multi_user_wishlist/|
-  ^shopinvader_delivery_carrier/|
   ^shopinvader_delivery_instruction/|
   ^shopinvader_demo_app/|
   ^shopinvader_elasticsearch/|
