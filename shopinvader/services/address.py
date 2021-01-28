@@ -33,7 +33,7 @@ class AddressService(Component):
 
     def search(self, **params):
         if not self.partner:
-            return {"data": []}
+            return self._paginate_search_no_result()
         else:
             return self._paginate_search(**params)
 
@@ -49,6 +49,9 @@ class AddressService(Component):
         address.write(self._prepare_params(params, mode="update"))
         res = self.search()
         if self._store_cache_needed(address):
+            # TODO: this should be done into customer service
+            # but ATM is not implemented.
+            # See https://github.com/shopinvader/odoo-shopinvader/issues/530
             res["store_cache"] = {"customer": self._to_json(address)[0]}
             customer = self.component(usage="customer")
             response = shopinvader_response.get()
@@ -74,14 +77,20 @@ class AddressService(Component):
     def _store_cache_needed(self, partner):
         return partner.address_type == "profile"
 
-    # Validator
     def _get_allowed_type(self):
         return ["contact", "invoice", "delivery", "other", "private"]
+
+    # Validator
+    def _validator_return_get(self):
+        return self._schema_for_to_json()
 
     def _validator_search(self):
         validator = self._default_validator_search()
         validator.pop("domain", {})
         return validator
+
+    def _validator_return_search(self):
+        return self._schema_for_paginate_search()
 
     def _validator_create(self):
         res = {
@@ -150,6 +159,9 @@ class AddressService(Component):
         }
         return res
 
+    def _validator_return_create(self):
+        return self._validator_return_search()
+
     def _validator_update(self):
         res = self._validator_create()
         for key in res:
@@ -157,8 +169,26 @@ class AddressService(Component):
                 del res[key]["required"]
         return res
 
+    def _validator_return_update(self):
+        schema = self._validator_return_search()
+        # only for profile
+        schema["store_cache"] = {
+            "nullable": True,
+            "type": "dict",
+            "schema": {
+                "customer": {
+                    "type": "dict",
+                    "schema": self._schema_for_one_address(),
+                }
+            },
+        }
+        return schema
+
     def _validator_delete(self):
         return {}
+
+    def _validator_return_delete(self):
+        return self._validator_return_search()
 
     def _get_base_search_domain(self):
         return self._default_domain_for_partner_records(
@@ -225,3 +255,75 @@ class AddressService(Component):
                 "shopinvader_enabled"
             ] = self.partner_validator.enabled_by_params(params, "address")
         return params
+
+    def _schema_for_one_address(self, access_info=True):
+        schema = {
+            # TODO: review what can be nullable or not
+            # Many of them have been set to nullable as they break tests
+            # because not all tests provide complete set of data.
+            # Eg: cart tests.
+            "id": {"type": "integer", "nullable": True},
+            "name": {"type": "string", "nullable": True},
+            "display_name": {"type": "string", "nullable": True},
+            "ref": {"type": "string", "nullable": True},
+            "street": {"type": "string", "nullable": True},
+            "street2": {"type": "string", "nullable": True},
+            "zip": {"type": "string", "nullable": True},
+            "city": {"type": "string", "nullable": True},
+            "phone": {"type": "string", "nullable": True},
+            "function": {"type": "string", "nullable": True},
+            "opt_in": {"type": "boolean", "nullable": True},
+            "opt_out": {"type": "boolean", "nullable": True},
+            "is_company": {"type": "boolean", "nullable": True},
+            "vat": {"type": "string", "nullable": True},
+            "lang": {"type": "string"},
+            "state": {
+                "nullable": True,
+                "type": "dict",
+                "schema": {
+                    "id": {"type": "integer"},
+                    "name": {"type": "string"},
+                },
+            },
+            "country": {
+                "type": "dict",
+                "schema": {
+                    "id": {"type": "integer"},
+                    "name": {"type": "string"},
+                    "code": {"type": "string"},
+                },
+            },
+            "title": {
+                "nullable": True,
+                "type": "dict",
+                "schema": {
+                    "id": {"type": "integer"},
+                    "name": {"type": "string"},
+                },
+            },
+            "industry_id": {
+                "nullable": True,
+                "type": "dict",
+                "schema": {
+                    "id": {"type": "integer"},
+                    "name": {"type": "string"},
+                },
+            },
+        }
+        if access_info:
+            schema["access"] = {
+                "type": "dict",
+                "schema": self._schema_for_access(),
+            }
+        return schema
+
+    def _schema_for_to_json(self):
+        """Return schema for address serialization."""
+        return self._schema_for_one_address()
+
+    def _schema_for_access(self):
+        return {
+            "read": {"type": "boolean"},
+            "update": {"type": "boolean"},
+            "delete": {"type": "boolean"},
+        }
