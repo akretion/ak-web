@@ -17,7 +17,6 @@ exclude: |
   ^shopinvader_elasticsearch/|
   ^shopinvader_guest_mode/|
   ^shopinvader_image/|
-  ^shopinvader_import_image/|
   ^shopinvader_lead/|
   ^shopinvader_locomotive/|
   ^shopinvader_locomotive_algolia/|
