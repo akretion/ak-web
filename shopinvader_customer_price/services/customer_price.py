@@ -2,14 +2,14 @@
 # @author Simone Orsi <simahawk@gmail.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
+from odoo.osv import expression
+
 from odoo.addons.base_rest.components.service import to_int
 from odoo.addons.component.core import Component
-from odoo.osv import expression
 
 
 class CustomerPriceService(Component):
-    """Shopinvader service to expose customer specific product prices.
-    """
+    """Shopinvader service to expose customer specific product prices."""
 
     _name = "shopinvader.customer.price.service"
     _inherit = "base.shopinvader.service"
