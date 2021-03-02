@@ -7,3 +7,14 @@ vcrpy
 vcrpy-unittest
 unittest2 # For shopinvader test_controller, which inherits component
 odoo-test-helper
+
+
+odoo14-addon-sale_product_set_packaging_qty @ git+https://github.com/OCA/sale-workflow@refs/pull/1402/head#subdirectory=setup/sale_product_set_packaging_qty
+odoo14-addon-base_jsonify @ git+https://github.com/OCA/server-tools@refs/pull/2031/head#subdirectory=setup/base_jsonify
+odoo14-addon-shopinvader_wishlist @ git+https://github.com/shopinvader/odoo-shopinvader@refs/pull/867/head#subdirectory=setup/shopinvader_wishlist
+odoo14-addon-shopinvader_sale_packaging @ git+https://github.com/shopinvader/odoo-shopinvader@refs/pull/873/head#subdirectory=setup/shopinvader_sale_packaging
+odoo14-addon-sale_by_packaging @ git+https://github.com/OCA/sale-workflow@refs/pull/1398/head#subdirectory=setup/sale_by_packaging
+odoo14-addon-sale_order_line_packaging_qty @ git+https://github.com/OCA/sale-workflow@refs/pull/1396/head#subdirectory=setup/sale_order_line_packaging_qty
+odoo14-addon-product_packaging_type @ git+https://github.com/OCA/product-attribute@refs/pull/760/head#subdirectory=setup/product_packaging_type
+odoo14-addon-sale_wishlist @ git+https://github.com/OCA/sale-workflow@refs/pull/1401/head#subdirectory=setup/sale_wishlist
+odoo14-addon-shopinvader @ git+https://github.com/shopinvader/odoo-shopinvader@refs/pull/887/head#subdirectory=setup/shopinvader
