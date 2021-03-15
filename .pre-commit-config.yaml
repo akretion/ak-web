@@ -14,7 +14,6 @@ exclude: |
   ^shopinvader_customer_multi_user_wishlist/|
   ^shopinvader_delivery_carrier/|
   ^shopinvader_demo_app/|
-  ^shopinvader_elasticsearch/|
   ^shopinvader_guest_mode/|
   ^shopinvader_image/|
   ^shopinvader_import_image/|
