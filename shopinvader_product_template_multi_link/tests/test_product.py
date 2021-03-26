@@ -21,9 +21,7 @@ class ProductLinkCaseBase(ProductCommonCase):
             "shopinvader.product_template_armchair_mid_century"
         )
         cls.template_1.product_template_link_ids.unlink()
-        cls.template_2 = cls.env.ref(
-            "shopinvader.product_template_chair_mid_century"
-        )
+        cls.template_2 = cls.env.ref("shopinvader.product_template_chair_mid_century")
         cls.template_2.product_template_link_ids.unlink()
         cls.template_3 = cls.env.ref(
             "shopinvader.product_template_tv_cabinet_shaker_wood"
@@ -54,7 +52,9 @@ class ProductLinkCaseBase(ProductCommonCase):
         cls.shopinvader_variant_3_2 = cls.variant_3_2._get_invader_variant(
             cls.backend, "en_US"
         )
-
+        cls.link_type_asym = cls.env["product.template.link.type"].create(
+            {"name": "One way link", "code": "one-way", "is_symmetric": False}
+        )
         cls._create_links()
 
     @classmethod
@@ -87,6 +87,13 @@ class ProductLinkCaseBase(ProductCommonCase):
                     "product_template_multi_link."
                     "product_template_link_type_cross_selling"
                 ).id,
+            }
+        )
+        cls.link_one_way_3_2 = cls.env["product.template.link"].create(
+            {
+                "left_product_tmpl_id": cls.template_3.id,
+                "right_product_tmpl_id": cls.template_2.id,
+                "type_id": cls.link_type_asym.id,
             }
         )
 
@@ -127,6 +134,17 @@ class ProductLinkCase(ProductLinkCaseBase):
         )
         self.assertEqual(
             self.shopinvader_variant_2_2.shopinvader_product_id.product_links,
+            expected,
+        )
+        expected = {
+            "cross_selling": [
+                {"id": main1.record_id.id},
+                {"id": main2.record_id.id},
+            ],
+        }
+        expected["one_way"] = [{"id": main2.record_id.id}]
+        self.assertEqual(
+            self.shopinvader_variant_3_2.shopinvader_product_id.product_links,
             expected,
         )
 
