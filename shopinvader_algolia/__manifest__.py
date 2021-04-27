@@ -5,7 +5,7 @@
 
 {
     "name": "Shopinvader Algolia Connector",
-    "version": "13.0.1.2.2",
+    "version": "14.0.1.0.0",
     "author": "Akretion",
     "website": "https://github.com/shopinvader/odoo-shopinvader",
     "license": "AGPL-3",
@@ -18,6 +18,6 @@
     ],
     "demo": ["demo/backend_demo.xml", "demo/product_demo.xml"],
     "external_dependencies": {"python": ["vcrpy_unittest"]},
-    "installable": False,
+    "installable": True,
     "application": True,
 }
