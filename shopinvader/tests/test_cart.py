@@ -5,6 +5,8 @@
 from odoo import fields
 from odoo.tools import mute_logger
 
+from odoo.addons.shopinvader import shopinvader_response
+
 from .common import CommonCase
 
 
@@ -231,7 +233,12 @@ class AnonymousCartCase(CartCase, CartClearTest):
         self.backend.write({"pricelist_id": second_pricelist.id})
         params = {"product_id": self.product_1.id, "item_qty": 1}
         self.service.shopinvader_session.clear()
-        response = self.service.dispatch("add_item", params=params)
+        add_item_response = self.service.dispatch("add_item", params=params)
+        self.service.shopinvader_session.update(
+            add_item_response.get("set_session")
+        )
+
+        response = self.service.dispatch("search")
         data = response.get("data")
         sale_id = response.get("set_session", {}).get("cart_id")
         sale_order = self.sale_obj.browse(sale_id)
@@ -275,13 +282,14 @@ class AnonymousCartCase(CartCase, CartClearTest):
           result must be empty
         """
         self.assertTrue(self.service.shopinvader_session.get("cart_id"))
-        search_result = self.service.search()
+        search_result = self.service.dispatch("search")
         self.assertEqual(
             search_result["store_cache"]["cart"]["name"], self.cart.name
         )
         # reset cart_id parameter
+        shopinvader_response.get().reset()
         self.service.shopinvader_session.update({"cart_id": False})
-        search_result = self.service.search()
+        search_result = self.service.dispatch("search")
         self.assertDictEqual(search_result, {})
 
 
@@ -440,6 +448,14 @@ class ConnectedCartCase(CommonConnectedCartCase, CartClearTest):
             self.backend.account_analytic_id, cart_bis.analytic_account_id
         )
 
+    def test_cart_misc_data_update(self):
+        self.service.dispatch(
+            "update", params={"client_order_ref": "#SpecialPurchaseDude!"}
+        )
+
+        cart = self.cart
+        self.assertEqual(cart.client_order_ref, "#SpecialPurchaseDude!")
+
     @mute_logger("odoo.models.unlink")
     def test_cart_delete_robustness(self):
         """
@@ -457,13 +473,29 @@ class ConnectedCartCase(CommonConnectedCartCase, CartClearTest):
         self.assertEqual(cart_bis.state, "draft")
         self.assertEqual(cart_bis.partner_id, self.partner)
 
-    def test_cart_misc_data_update(self):
-        self.service.dispatch(
-            "update", params={"client_order_ref": "#SpecialPurchaseDude!"}
-        )
-
-        cart = self.cart
-        self.assertEqual(cart.client_order_ref, "#SpecialPurchaseDude!")
+    def test_cart_deleted_then_search(self):
+        """
+        When a user have a cart into session (cart_id) and this cart is
+        removed (or doesn't match anymore to be loaded by the service),
+        the search shouldn't create a new empty cart.
+        This test ensure the search will not create a new cart is this case.
+        :return:
+        """
+        cart = self.service._get()
+        # Ensure correctly created
+        self.assertTrue(cart.exists())
+        # Put the cart into the session
+        self.service.shopinvader_session.update({"cart_id": cart.id})
+        # Delete the cart
+        cart.unlink()
+        self.assertFalse(cart.exists())
+        nb_sale_order_before = self.cart.search_count([])
+        result = self.service.dispatch("search")
+        nb_sale_order_after = self.cart.search_count([])
+        self.assertDictEqual(result.get("data", {}), {})
+        # Ensure no new SO has been created
+        self.assertEqual(nb_sale_order_after, nb_sale_order_before)
+        return
 
 
 class ConnectedCartNoTaxCase(CartCase):

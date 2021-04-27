@@ -229,6 +229,14 @@ class ShopinvaderBackend(models.Model):
         help="Select a specific report for invoice download, if none are selected "
         "default shopinvader implementation is used.",
     )
+    simple_cart_service = fields.Boolean(
+        help="If this option is checked, the add item action on frontend will"
+        " either add a new line either increase qty but promotion, taxes,"
+        " subtotal computations will be delegated to an asynchronous job."
+        " It the customer wants to see his cart before its execution,"
+        " the computation will be done on the fly to ensure data"
+        " integrity"
+    )
     customer_default_role = fields.Char(
         compute="_compute_customer_default_role",
     )
