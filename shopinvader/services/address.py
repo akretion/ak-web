@@ -25,7 +25,7 @@ class AddressService(Component):
     # The following method are 'public' and can be called from the controller.
 
     def get(self, _id):
-        return self._to_json(self._get(_id))
+        return self._to_address_info(_id)
 
     def search(self, **params):
         if not self.partner:
@@ -46,7 +46,7 @@ class AddressService(Component):
         address = self._get(_id)
         address.write(self._prepare_params(params, mode="update"))
         res = self.search()
-        if address.address_type == "profile":
+        if self._store_cache_needed(address):
             res["store_cache"] = {"customer": self._to_json(address)[0]}
         self._post_update(address)
         return res
@@ -61,6 +61,12 @@ class AddressService(Component):
     # The following method are 'private' and should be never never NEVER call
     # from the controller.
     # All params are trusted as they have been checked before
+
+    def _store_cache_needed(self, partner):
+        return partner.address_type == "profile"
+
+    def _to_address_info(self, _id):
+        return self._to_json(self._get(_id))
 
     # Validator
     def _validator_search(self):
@@ -140,7 +146,9 @@ class AddressService(Component):
         return {}
 
     def _get_base_search_domain(self):
-        return [("id", "child_of", self.partner.id)]
+        return self._default_domain_for_partner_records(
+            partner_field="id", with_backend=False
+        )
 
     def _json_parser(self):
         res = [
@@ -169,7 +177,11 @@ class AddressService(Component):
         return res
 
     def _to_json(self, address):
-        return address.jsonify(self._json_parser())
+        data = address.jsonify(self._json_parser())
+        for item in data:
+            # access info on the current record partner record
+            item["access"] = self.access_info.for_address(item["id"])
+        return data
 
     def _prepare_params(self, params, mode="create"):
         for key in ["country", "state"]:
