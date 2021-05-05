@@ -1,8 +1,9 @@
 # Copyright 2018-2019 ACSONE SA/NV
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo.addons.shopinvader.tests.common import CommonCase
 from werkzeug.exceptions import Forbidden, NotFound
+
+from odoo.addons.shopinvader.tests.common import CommonCase
 
 
 class TestGuestService(CommonCase):
@@ -38,16 +39,14 @@ class TestGuestService(CommonCase):
         # if we create a new guest with the same email, a new binding is
         # created and the first one is archived
         # moreover in no duplicate mode, the partner remains the same
-        self.shopinvader_config.create(
-            {"no_partner_duplicate": True}
-        ).execute()
+        self.shopinvader_config.create({"no_partner_duplicate": True}).execute()
         res = self.service.dispatch("create", params=self.data)["data"]
         new_partner = self.env["res.partner"].browse(res["id"])
         self.assertEqual(partner, new_partner)
         self.assertFalse(first_binding.active)
         new_binding = partner.shopinvader_bind_ids
         self.assertEqual(new_binding.is_guest, True)
-        self.assertNotEquals(first_binding, new_binding)
+        self.assertNotEqual(first_binding, new_binding)
 
         # Update guest address
         self.data.update({"phone": "012345"})
@@ -57,10 +56,9 @@ class TestGuestService(CommonCase):
             self.service = work.component(usage="addresses")
         res = self.service.dispatch("update", new_partner.id, params=self.data)
 
-        self.assertEquals("012345", new_partner.phone)
-        self.assertDictContainsSubset(
-            {"email": new_partner.email}, res["store_cache"]["customer"]
-        )
+        self.assertEqual("012345", new_partner.phone)
+        customer = res["store_cache"]["customer"]
+        self.assertEqual(dict(customer, **{"email": new_partner.email}), customer)
 
     def test_search_guest(self):
         self._create_guest()
