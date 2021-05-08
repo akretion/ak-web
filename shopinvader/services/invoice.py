@@ -14,7 +14,7 @@ class InvoiceService(Component):
         "abstract.shopinvader.download",
     ]
     _name = "shopinvader.invoice.service"
-    _usage = "invoice"
+    _usage = "invoices"
     _expose_model = "account.move"
     _description = __doc__
 
@@ -99,17 +99,18 @@ class InvoiceService(Component):
             sales = self.env["sale.order"].search(so_domain)
             invoices = sales.mapped("invoice_ids")
         else:
-            invoices = self.env["account.move"].search(
-                [
-                    ("partner_id", "=", self.partner.id),
-                    ("type", "in", ["out_invoice", "out_refund"]),
-                ]
-            )
+            invoice_domain = self._get_invoice_domain()
+            invoices = self.env["account.move"].search(invoice_domain)
         return invoices
 
     def _get_sale_order_domain(self):
         return self._default_domain_for_partner_records() + [
             ("typology", "=", "sale")
+        ]
+
+    def _get_invoice_domain(self):
+        return self._default_domain_for_partner_records() + [
+            ("type", "in", ["out_invoice", "out_refund"])
         ]
 
     def _get_report_action(self, target, params=None):

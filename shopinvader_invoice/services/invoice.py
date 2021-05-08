@@ -71,6 +71,7 @@ class InvoiceService(Component):
             "invoice_id": {"type": "integer"},
             "number": {"type": "string"},
             "date_invoice": {"type": "string"},
+            "date_due": {"type": "string"},
             "amount_total": {"type": "float"},
             "amount_total_signed": {"type": "float"},
             "amount_tax": {"type": "float"},
@@ -81,26 +82,29 @@ class InvoiceService(Component):
             "state": {"type": "string"},
             "type_label": {"type": "string"},
             "state_label": {"type": "string"},
+            "origin": {"type": "string"},
         }
         return invoice_schema
 
     def _get_parser_invoice(self):
         """
-        Get the parser of account.invoice
+        Get the parser of account.move
         :return: list
         """
         to_parse = [
             "id:invoice_id",
-            "number",
-            "date_invoice",
+            "invoice_payment_ref:number",
+            "invoice_date:date_invoice",
+            "invoice_date_due:date_due",
             "amount_total",
             "amount_total_signed",
             "amount_tax",
             "amount_untaxed",
             "amount_untaxed_signed",
-            "state",
+            "invoice_payment_state:state",
             "type",
-            "residual:amount_due",
+            "amount_residual:amount_due",
+            "invoice_origin:origin",
         ]
         return to_parse
 
@@ -111,7 +115,9 @@ class InvoiceService(Component):
         values.update(
             {
                 "type_label": self._get_selection_label(invoice, "type"),
-                "state_label": self._get_selection_label(invoice, "state"),
+                "state_label": self._get_selection_label(
+                    invoice, "invoice_payment_state"
+                ),
             }
         )
         return values
