@@ -7,3 +7,8 @@ openupgradelib @ git+https://github.com/OCA/openupgradelib.git
 
 unittest2 # For shopinvader test_controller, which inherits component
 odoo-test-helper
+
+
+### PENDING PRs
+
+odoo13-addon-connector_algolia @ git+https://github.com/OCA/search-engine.git@refs/pull/73/head#subdirectory=setup/connector_algolia
