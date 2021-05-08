@@ -2,7 +2,8 @@
 # @author Sébastien BEAU <sebastien.beau@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo import exceptions
+
+from odoo import exceptions, fields
 from odoo.tools import mute_logger
 
 from .common import CommonCase
@@ -194,6 +195,30 @@ class AbstractItemCase(ItemCaseMixin):
         # same for the total
         self.assertEqual(amount["total"], 14.85)
 
+    def test_upgrade_last_update_date(self):
+        last_external_update_date = self._get_last_external_update_date(
+            self.cart
+        )
+        self.add_item(self.product_1.id, 2)
+        self._check_last_external_update_date(
+            self.cart, last_external_update_date
+        )
+        last_external_update_date = self._get_last_external_update_date(
+            self.cart
+        )
+        line_id = self.cart.order_line[0].id
+        self.update_item(line_id, 5)
+        self._check_last_external_update_date(
+            self.cart, last_external_update_date
+        )
+        last_external_update_date = self._get_last_external_update_date(
+            self.cart
+        )
+        self.delete_item(line_id)
+        self._check_last_external_update_date(
+            self.cart, last_external_update_date
+        )
+
 
 class AnonymousItemCase(AbstractItemCase, CommonCase):
     @classmethod
@@ -201,6 +226,7 @@ class AnonymousItemCase(AbstractItemCase, CommonCase):
         super(AnonymousItemCase, cls).setUpClass()
         cls.partner = cls.backend.anonymous_partner_id
         cls.cart = cls.env.ref("shopinvader.sale_order_1")
+        cls.cart.last_external_update_date = fields.Datetime.now()
 
     def setUp(self, *args, **kwargs):
         super(AnonymousItemCase, self).setUp(*args, **kwargs)
@@ -221,6 +247,7 @@ class ConnectedItemCase(AbstractItemCase, CommonCase):
         super(ConnectedItemCase, cls).setUpClass()
         cls.partner = cls.env.ref("shopinvader.partner_1")
         cls.cart = cls.env.ref("shopinvader.sale_order_2")
+        cls.cart.last_external_update_date = fields.Datetime.now()
 
     def setUp(self, *args, **kwargs):
         super(ConnectedItemCase, self).setUp(*args, **kwargs)
